@@ -1,0 +1,139 @@
+---
+title: "hw5"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#1.
+https://github.com/tianajaded/115_personal_dataset
+
+#2.
+#(a) Mean: the mean is the average/most common value in a set of numbers. 
+#(b) Median: the median is the middle of a set of numbers.
+#(c) IQR: IQR is the interquartile range, or the middle 50% of values in a data set. 
+#(d) Variance: variance is the measure of dispersion/ the measure of how far a set of numbers is spread out from their average value.
+#(e) Skewness: Skewness is the measure of asymmetry of the probability distribution.
+
+#3.Load the COL.csv dataset into R.
+
+```{r col}
+col <- read.csv("COL.csv")
+head(col)
+library(tidyverse)
+
+```
+
+#(a) Decide which rows are outliers in this data and describe and justify how you determined their outlier status.
+I used boxplots to determine the outliers. Since a boxplot's "whiskers" show the values below and above 1.5*IQR, I figure anything outside of those are big outliers, so I used them to determine the outliers. Wine, cappucinnos, cinema, and rent all had large outliers way above the whiskers, so I would consider their maximums to be outliers. Also though, just by looking at these rows I'd probably say that a min $12 disposable income is an unrealistic outlier, as well as a min of 7 cent gasoline. 
+
+```{r sum}
+summary(col)
+```
+```{r box}
+boxplot(col$Wine, ylab="Wine")
+```
+```{r cap}
+boxplot(col$Cappuccino, ylab= "Cappuccino")
+```
+```{r cin}
+boxplot(col$Cinema, ylab= "cinema")
+```
+```{r gas}
+boxplot(col$Gasoline, ylab = "gas")
+```
+```{r rent}
+boxplot(col$Avg.Rent, ylab="rent")
+```
+```{r income}
+boxplot(col$Avg.Disposable.Income, ylab= "income")
+```
+#(b) For each row you identified, if you were performing EDA on this dataset, would you include its values in your analysis and plots?
+#(c) Why or why not?
+I would still include almost all of the data rows. Some places have very fancy and expensive coffee, wine can sometimes be expensive if it's fancy, maybe someone rented out the cinema which is why it was so expensive, and some places just have higher rent prices. Those outliers all "make sense" so I'd include them still. The only things I would probably not include are the average min disposable income, as well as perhaps the minimum gasoline amount. The min disposable income is $12, which doesn't seem very realistic. The gasoline minimum is only 7 cents, which doesn't seem very realistic, especially considering that the first quartile is 73 cents. So I would probably delete those two values.
+
+
+
+#4. Load the HeightWeightAgeSex.csv data into R.
+```{r hwas}
+hwas <- read.csv("Height_Weight_Age_Sex.csv")
+head(hwas)
+library(tidyverse)
+summary(hwas)
+```
+```{r sex}
+#hwas$male <- factor(hwas$male)
+hwas <- hwas %>%
+  mutate(male = factor(male, 
+                         levels = c(0,1),
+                         labels= c("female", "male")))
+```
+```{r rename}
+hwas  <- hwas %>% 
+  rename(
+    gender= male)
+```
+
+#(a) Create boxplots for the height and weight columns separately.  Comment on the symmetry and sknewness, if any, for their distributions using these plots.
+  
+  For the height boxplot, it is definitely skewed to the lower end. However, the part of the box below the median is a bit bigger than the part of the box that lies above it. So the 3st quartile-1rd quartile values are a bit skewed to the lower end, and the outliers are skewed to the lower end.The symmetry favors the lower half of the plot. 
+  For the weight boxplot, the symmetry outside the box is pretty fine, there is about the same lengeth between the min and the 1st quartile and the max and the 3rd quartile. However, the values inside the box are definitely skwed to the lower end. There doesn't seem to be many outliers though, like there was with the height boxplot.  The skewness is definitely toward the lower numbers beneath 40.
+
+```{r boxplot height}
+ggplot(hwas, aes(x="", y =height)) + geom_boxplot()
+```
+```{r ggplot}
+library(ggplot2)
+ggplot(hwas, aes(x="", y =weight)) + geom_boxplot()
+```
+```{r boxplot weight}
+boxplot(hwas$weight, ylab = "Weight")
+```
+```{r boxplot age}
+boxplot(hwas$age, ylab = "Age")
+```
+
+#(b) Create histograms for the height and weight columns separately.  Comment on the symmetry and sknewness, if any, for their distributions using these plots.  Are your conclusions based on the boxplots consistent with those based on densities?
+The histogram for height supports the findings of the boxplot. The distribution is definitely skewed to the left, which are the lower values. It also demonstrates that there are a lot of outliers between 50 and 80. And like the boxplot, it shows that most of the values are in between 120 and 170(ish).It makes sense that the median would be 150, so I would say that the distributions are pretty consistent. However, if I had to choose one plot that presented the data more thoroughly, I'd definitely choose a boxplot. 
+
+The histogram for weight does not support the boxplot as well as the height did becuase the distribution is a lot less obvious. Here, we find the symmetry in the end densities, showing that on both the top and bottom sides of the distribution there are similar almost zero values. The median is 40, which makes sense visually. The upper quartile is between 140 and 150, so that visually also makes sense. But there are a lot of outliers below the median. I feel like the conclusions are somewhat consistent, but this is because I was able to look at the boxplot first. If I only saw the histogram, I don't think I'd have as much understanding of the distribution.
+```{r hist height}
+hist(hwas$height, main = "Height")
+```
+```{r hist weight}
+hist(hwas$weight, main = "Weight")
+```
+
+#(c) Create separate boxplots for the weight data separated by the Male variable.  What do you observe about the two distributions?
+Even though the males and the females start at about the same weight in the lower quartile, males in general seem to have a higher weight, even though the minimum weight for men is slightly higher than the women's. 
+```{r boxplot h/w}
+library(ggplot2)
+#ggplot(subset(HWAS, male %in% c(1))...)
+ggplot(hwas, aes(x=gender, y=weight))+geom_boxplot(fill=" light blue", color="dark red", lwd=1, notch=T) 
+```
+```{r flippy}
+ggplot(hwas, aes(x=gender, y=weight))+geom_boxplot(fill=" light blue", color="dark red", lwd=1, notch=T)+ coord_flip()
+```
+#(d) Add a BMI column to the data frame:
+```{r bmi}
+hwas <- read.csv("./Height_Weight_Age_Sex.csv")
+hwas$BMI <- hwas$weight/((hwas$height/100)**2)
+hwas$underweight <- hwas$BMI <18.5
+```
+#(e) Create separate histograms for the BMI column separated by the Male variable.  What do you observe about the two distributions? 
+I seperated the male numeric values into strings, male and female, and then showed them in different binwidths. I see that in general it seems like females have much higher BMI's than their male counterparts. The first histogram is a bit chunky, and I think the second one gives a better visual that represents the spread a little better. But they both pretty clearly show that men have lower BMIs for the most part. 
+```{r hist bmi}
+ggplot(data=hwas, aes(x=BMI,..density.., fill=gender)) + geom_histogram(binwidth = 1)
+```
+```{r hist 2}
+ggplot(data=hwas, aes(x=BMI, ..density.., fill=gender)) + geom_histogram(binwidth = .4)
+```
+
+#(f ) Make a scatterplot of height vs.  weight for the full dataset that distinguishes both the Male variable and the under variable.  What do you observe?
+Most of the men and women in the data set are over 30 kg. The shortest males and females are around 50cm, so I assume those are children. Most of the people of both genders are over 140cm, which makes sense. It seems like a lot of people under the height of 130ish cm (which I'm assuming are children based on the fact that that would be everyone under 4 feet tall) are underweight. Also, males seem to be much taller than the females; females stop mostly at 160cm, and men stop closer to 175. 
+```{r scatter}
+ggplot(hwas, aes(x = weight, y=height, color= gender, shape= underweight)) + geom_point(size=2) 
+```
+#5. 
